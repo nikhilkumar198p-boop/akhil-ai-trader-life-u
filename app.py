@@ -12,16 +12,14 @@ st.title("🚀 अखिल एआई ट्रेडर लाइफ (प्र
 st.sidebar.header("प्रो सेटिंग्स")
 api_key = st.sidebar.text_input("Gemini API Key:", type="password")
 
-# स्पीक फीचर के लिए फंक्शन
 def speak_response(text):
     try:
         tts = gTTS(text=text, lang='hi')
         tts.save("response.mp3")
         audio_file = open("response.mp3", "rb")
-        audio_bytes = audio_file.read()
-        st.audio(audio_bytes, format="audio/mp3")
+        st.audio(audio_file.read(), format="audio/mp3")
     except Exception as e:
-        st.write("आवाज़ जनरेट करने में छोटी सी समस्या आई: ", e)
+        st.write("आवाज़ में छोटी सी समस्या: ", e)
 
 tab1, tab2, tab3 = st.tabs(["💬 चैट और ट्रेडर बातचीत", "🧠 लर्निंग (वीडियो/फोटो)", "📊 लाइव चार्ट प्रेडिक्शन"])
 
@@ -32,8 +30,8 @@ with tab1:
         if api_key:
             try:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                response = model.generate_content(f"तुम एक प्रो ट्रेडर हो, हिंदी में समझाओ: {query}")
+                model = genai.GenerativeModel('gemini-pro')
+                response = model.generate_content(f"तुम एक प्रो ट्रेडर हो, हिंदी में साफ़-साफ़ समझाओ: {query}")
                 st.write(response.text)
                 speak_response(response.text)
             except Exception as e:
@@ -43,10 +41,9 @@ with tab1:
 
 with tab2:
     st.subheader("लर्निंग सेंटर (ट्रेनिंग)")
-    st.write("यहाँ वीडियो लिंक और ट्रेडिंग फोटो डालें, एआई इसे याद रखेगा।")
     link = st.text_input("यूट्यूब वीडियो लिंक:")
     if link:
-        st.success(f"एआई ने '{link}' से डेटा सीख लिया है!")
+        st.success(f"डेटा सीख लिया गया है!")
 
 with tab3:
     st.subheader("चार्ट स्कैनर (Up/Down Prediction)")
@@ -60,16 +57,15 @@ with tab3:
             if api_key:
                 try:
                     genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    model = genai.GenerativeModel('gemini-pro')
                     prompt = "तुम एक एक्सपर्ट ट्रेडर हो। इस चार्ट का विश्लेषण करो, बताओ मार्केट ऊपर जाएगा या नीचे, और लेवल्स बताओ।"
                     response = model.generate_content([prompt, image])
                     
-                    # चार्ट पर मार्किंग (Box/Arrow)
                     marked_image = image.copy()
                     draw = ImageDraw.Draw(marked_image)
                     w, h = marked_image.size
                     draw.rectangle([20, 20, w-20, h-20], outline="green", width=5)
-                    st.image(marked_image, caption="మార్केड चार्ट प्रेडिक्शन", use_container_width=True)
+                    st.image(marked_image, caption="मार्केड चार्ट प्रेडिक्शन", use_container_width=True)
                     
                     st.markdown("### 📊 एआई का जवाब:")
                     st.write(response.text)
