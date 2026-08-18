@@ -30,7 +30,8 @@ with tab1:
         if api_key:
             try:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-pro')
+                # यहाँ हम एकदम सही और लेटेस्ट मॉडल नाम इस्तेमाल कर रहे हैं
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 response = model.generate_content(f"तुम एक प्रो ट्रेडर हो, हिंदी में साफ़-साफ़ समझाओ: {query}")
                 st.write(response.text)
                 speak_response(response.text)
@@ -57,7 +58,7 @@ with tab3:
             if api_key:
                 try:
                     genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel('gemini-pro')
+                    model = genai.GenerativeModel('gemini-1.5-flash')
                     prompt = "तुम एक एक्सपर्ट ट्रेडर हो। इस चार्ट का विश्लेषण करो, बताओ मार्केट ऊपर जाएगा या नीचे, और लेवल्स बताओ।"
                     response = model.generate_content([prompt, image])
                     
