@@ -14,11 +14,14 @@ api_key = st.sidebar.text_input("Gemini API Key:", type="password")
 
 # स्पीक फीचर के लिए फंक्शन
 def speak_response(text):
-    tts = gTTS(text=text, lang='hi')
-    tts.save("response.mp3")
-    audio_file = open("response.mp3", "rb")
-    audio_bytes = audio_file.read()
-    st.audio(audio_bytes, format="audio/mp3")
+    try:
+        tts = gTTS(text=text, lang='hi')
+        tts.save("response.mp3")
+        audio_file = open("response.mp3", "rb")
+        audio_bytes = audio_file.read()
+        st.audio(audio_bytes, format="audio/mp3")
+    except Exception as e:
+        st.write("आवाज़ जनरेट करने में छोटी सी समस्या आई: ", e)
 
 tab1, tab2, tab3 = st.tabs(["💬 चैट और ट्रेडर बातचीत", "🧠 लर्निंग (वीडियो/फोटो)", "📊 लाइव चार्ट प्रेडिक्शन"])
 
@@ -27,40 +30,51 @@ with tab1:
     query = st.text_area("अपना सवाल पूछें:")
     if st.button("भेजें और सुनें"):
         if api_key:
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            response = model.generate_content(f"तुम एक प्रो ट्रेडर हो, हिंदी में समझाओ: {query}")
-            st.write(response.text)
-            speak_response(response.text) # बोलकर सुनाएगा
-        else: st.error("API Key डालें!")
+            try:
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                response = model.generate_content(f"तुम एक प्रो ट्रेडर हो, हिंदी में समझाओ: {query}")
+                st.write(response.text)
+                speak_response(response.text)
+            except Exception as e:
+                st.error(f"एरर आ गया: {e}")
+        else: 
+            st.error("भाई, पहले साइडबार में अपनी API Key डालें!")
 
 with tab2:
     st.subheader("लर्निंग सेंटर (ट्रेनिंग)")
     st.write("यहाँ वीडियो लिंक और ट्रेडिंग फोटो डालें, एआई इसे याद रखेगा।")
     link = st.text_input("यूट्यूब वीडियो लिंक:")
-    st.success(f"एआई ने '{link}' से डेटा सीख लिया है!")
+    if link:
+        st.success(f"एआई ने '{link}' से डेटा सीख लिया है!")
 
 with tab3:
     st.subheader("चार्ट स्कैनर (Up/Down Prediction)")
-    uploaded_file = st.file_uploader("चार्ट का स्क्रीनशॉट डालें:", type=["jpg", "png"])
+    uploaded_file = st.file_uploader("चार्ट का स्क्रीनशॉट डालें:", type=["jpg", "png", "jpeg"])
     
     if uploaded_file:
         image = Image.open(uploaded_file).convert("RGB")
-        st.image(image, use_container_width=True)
+        st.image(image, caption="अपलोड किया गया चार्ट", use_container_width=True)
         
         if st.button("एनालाइज करो (बोलो और निशान बनाओ)"):
             if api_key:
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-2.5-flash')
-                prompt = "इस चार्ट का विश्लेषण करो, बताओ ऊपर जाएगा या नीचे, और लेवल्स बताओ।"
-                response = model.generate_content([prompt, image])
-                
-                # निशान बनाना (Arrow/Box)
-                draw = ImageDraw.Draw(image)
-                w, h = image.size
-                draw.rectangle([20, 20, w-20, h-20], outline="green", width=5)
-                st.image(image)
-                
-                st.write(response.text)
-                speak_response(response.text) # एआई बोलकर बताएगा
-            else: st.error("API Key डालें!")
+                try:
+                    genai.configure(api_key=api_key)
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    prompt = "तुम एक एक्सपर्ट ट्रेडर हो। इस चार्ट का विश्लेषण करो, बताओ मार्केट ऊपर जाएगा या नीचे, और लेवल्स बताओ।"
+                    response = model.generate_content([prompt, image])
+                    
+                    # चार्ट पर मार्किंग (Box/Arrow)
+                    marked_image = image.copy()
+                    draw = ImageDraw.Draw(marked_image)
+                    w, h = marked_image.size
+                    draw.rectangle([20, 20, w-20, h-20], outline="green", width=5)
+                    st.image(marked_image, caption="మార్केड चार्ट प्रेडिक्शन", use_container_width=True)
+                    
+                    st.markdown("### 📊 एआई का जवाब:")
+                    st.write(response.text)
+                    speak_response(response.text)
+                except Exception as e:
+                    st.error(f"चार्ट एनालिसिस में एरर आया: {e}")
+            else: 
+                st.error("भाई, पहले साइडबार में अपनी API Key डालें!")
